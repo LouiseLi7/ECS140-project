@@ -61,7 +61,7 @@ fn check_token_type_char(text:char)->TokenType{
         return TokenType::Operator;
     }
     else{
-        return Token::Invalid;
+        return TokenType::Invalid;
     }
 }
 
@@ -136,10 +136,15 @@ fn Scanner(file: CStream)-> Vec<Token>{
     }
     let pos_start = file.char_pos-1; //because the char_pos has +1 and the next_char is the char in the pos of char_pos -1 
     let mut token_length = 0;
-    while next_char != ' '||next_char !='\n' {
-        token_length = token_length+1;
-        next_char = file.get_next_char().unwrap();
-    }// continue adding up(the same token) if not space or new line
+    if next_char =='('|| next_char ==')'|| next_char =='{'|| next_char =='}'|| next_char ==';'{
+        token_length = 1;
+    }
+    else{
+        while next_char != ' ' || next_char !='\n'||next_char =='('|| next_char ==')'|| next_char =='{'|| next_char =='}'|| next_char ==';'{
+            token_length = token_length+1;
+            next_char = file.get_next_char().unwrap();
+        }
+    }// continue adding up(the same token) if not space or new line or Operator without spaces 
     if token_length == 1 {
         let token_type = check_token_type_char(f[pos_start,pos_start+1]);
     }
@@ -178,9 +183,14 @@ fn get_next_token(file: CStream,current_t:Token)->Token{
     else {
         let pos_start = file.char_pos-1;
         let mut token_length = 0;
-        while next_char != ' ' || next_char !='\n'{
-            token_length = token_length+1;
-            next_char = file.get_next_char().unwrap();
+        if next_char =='('|| next_char ==')'|| next_char =='{'|| next_char =='}'|| next_char ==';'{
+            token_length = 1;
+        }
+        else{
+            while next_char != ' ' || next_char !='\n'||next_char =='('|| next_char ==')'|| next_char =='{'|| next_char =='}'|| next_char ==';'{
+                token_length = token_length+1;
+                next_char = file.get_next_char().unwrap();
+            }
         }
         let pos_end = pos_start + token_length;
         if token_length == 1 {
