@@ -256,14 +256,19 @@ impl Parser {
                 let line_num = curr_lexeme.line_num;
                 let char_pos = curr_lexeme.char_pos;
         
-                let declaration_first_set= vec_of_strings!["unsigned", "char", "short", "int", "long",
-                 "float", "double"];
+                let declaration_first_set= vec_of_strings!["unsigned", "char", "short",
+                 "int", "long", "float", "double"];
                 while declaration_first_set.contains(&curr_lexeme.text) {
                     match self.fun_Declaration() {
                         Ok(()) => (),
                         Err(e) => println!("{}", e)
                     }
-                    curr_lexeme = self.get_next_token().unwrap();
+                    match self.get_next_token() {
+                        None => {
+                            Err(MyError::SyntaxError{line_num, char_pos, syntax});
+                        },
+                        Some(x) => curr_lexeme = x
+                    }
                 }
                 if curr_lexeme.text == "void" {
                     match self.fun_MainDeclaration() {
@@ -293,9 +298,19 @@ impl Parser {
 
     }
 
-    // fn fun_Declaration(&mut self) -> Result<(), MyError> {
+    fn fun_Declaration(&mut self) -> Result<(), MyError> {
+        let syntax = String::from("Declaration := DeclarationType (VariableDeclaration
+             | FunctionDeclaration)");
+        let funtional
+        match self.get_next_token() {
+            None => {
+                Err(MyError::SyntaxError{line_num: 0, char_pos: 0, syntax});
+            },
+            Some(x) => {
+                let mut curr_lexeme = x;
 
-    // }
+            }
+    }
 
 }
 
