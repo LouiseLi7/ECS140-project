@@ -89,6 +89,12 @@ fn check_token_type_char(text:char)->TokenType{
     if text =='('||text ==')'||text =='{'||text =='}'||text ==','||text =='}'||text =='='||text =='<'||text =='>'||text =='+'||text =='-'||text =='*'||text =='/'||text ==';'{
         return TokenType::Operator;
     }
+    else if text.is_numeric(){
+        return TokenType::IntConstant;
+    }
+    else if text.is_alphabetic(){
+        return TokenType::Identifier;
+    }
     else{
         return TokenType::Invalid;
     }
@@ -253,7 +259,6 @@ fn get_next_token(file: &mut Cstream,current_t:Token)->Token{
 fn main() {
     let mut f = Cstream::new(&"./examples/example1.x".to_string());
     let mut content = f.get_content();
-    println!("{:?}", content.chars().nth(245).unwrap());
     let vector = Scanner(&mut f);
     //println!("{:?}", f.get_content());
     //println!("{:?}", vector.first().unwrap().return_token_type());
