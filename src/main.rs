@@ -34,7 +34,7 @@ impl Cstream {
     // }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum TokenType {
     IntConstant,
     FloatConstant,
@@ -57,7 +57,7 @@ impl TokenType {
     }
 }// transform the content of TokenType as string 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct Token {
     text: String,
     token_type: TokenType,
@@ -284,21 +284,33 @@ impl Parser {
         }
     }
 
-    fn get_next_token(&mut self) -> Option<&Token> {
-        self.curr_token_index += 1;
-        return self.all_tokens.get(self.curr_token_index - 1);
+    fn get_next_token(&mut self) -> Option<Token> {
+        if self.curr_token_index < self.all_tokens.len() {
+            self.curr_token_index += 1;
+            Some(self.all_tokens[self.curr_token_index - 1].clone())
+        } else {
+            None
+        }
     }
 
-    fn get_curr_token(&self) -> &Token {
-        return &self.all_tokens[self.curr_token_index - 1];
+    fn get_curr_token(&self) -> Token {
+        return self.all_tokens[self.curr_token_index - 1].clone();
     }
 
-    fn peek_next_token(&self) -> Option<&Token> {
-        return self.all_tokens.get(self.curr_token_index);
+    fn peek_next_token(&self) -> Option<Token> {
+        if self.curr_token_index < self.all_tokens.len() + 1 {
+            Some(self.all_tokens[self.curr_token_index].clone())
+        } else {
+            None
+        }
     }
 
-    fn peek_nextnext_token(&self) -> Option<&Token> {
-        return self.all_tokens.get(self.curr_token_index + 1);
+    fn peek_nextnext_token(&self) -> Option<Token> {
+        if self.curr_token_index < self.all_tokens.len() + 2 {
+            Some(self.all_tokens[self.curr_token_index + 1].clone())
+        } else {
+            None
+        }
     }
     
     fn fun_Program(&mut self) -> Result<(), MyError> {
@@ -308,7 +320,7 @@ impl Parser {
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: 0, char_pos: 0, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
                 let first_set_Declaration = vec_of_strings!["unsigned", "char", "short",
                  "int", "long", "float", "double"];
                 
@@ -317,9 +329,11 @@ impl Parser {
                         Ok(()) => (),
                         Err(e) => println!("{}", e)
                     }
+                    curr_lexeme = self.get_curr_token();
+
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                        Some(x) => curr_lexeme = &*x
+                        Some(x) => curr_lexeme = x
                     }
                 }
 
@@ -338,7 +352,7 @@ impl Parser {
                         Ok(())
                     }
                     Some(x) => {
-                        curr_lexeme = &&*x;
+                        curr_lexeme = x;
                         while first_set_Declaration.contains(&curr_lexeme.text) {
                             match self.fun_FunctionDefinition() {
                                 Ok(()) => (),
@@ -349,7 +363,7 @@ impl Parser {
                                     println!("Input program is syntactacilly correct.");
                                     return Ok(())
                                 },
-                                Some(x) => curr_lexeme = &&*x
+                                Some(x) => curr_lexeme = x
                             }
                         }
                         Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
@@ -377,7 +391,7 @@ impl Parser {
         match self.get_next_token() {
             None => Ok(()),
             Some(x) => {
-                let curr_lexeme = &*x;
+                let curr_lexeme = x;
 
                 if curr_lexeme.text == "=" {
                     match self.fun_VariableDeclaration() {
@@ -406,25 +420,25 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                  char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
 
                 if curr_lexeme.text == "main" {
                     match self.get_next_token() {
                         None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            curr_lexeme = x;
 
                             if curr_lexeme.text == "(" {
                                 match self.get_next_token() {
                                     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                     Some(x) => {
-                                        curr_lexeme = &*x;
+                                        curr_lexeme = x;
 
                                         if curr_lexeme.text == ")" {
                                             match self.get_next_token() {
                                                 None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                                 Some(x) => {
-                                                    curr_lexeme = &*x;
+                                                    curr_lexeme = x;
 
                                                     if curr_lexeme.text == "{" {
                                                         match self.fun_Block() {
@@ -456,17 +470,17 @@ impl Parser {
 
     fn fun_FunctionDefinition(&mut self) -> Result<(), MyError> {
         let syntax = String::from("FunctionDefinition := DeclarationType ParameterBlock Block");
-        let functional_token = self.get_curr_token();
         match self.fun_DeclarationType() {
             Ok(()) => (),
             Err(e) => println!("{}", e)
         }
+        let mut curr_lexeme = self.get_curr_token();
 
         match self.get_next_token() {
-            None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
-                 char_pos: functional_token.char_pos, syntax}),
+            None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num,
+                 char_pos: curr_lexeme.char_pos, syntax}),
             Some(x) => {
-                let curr_lexeme = &*x;
+                curr_lexeme = x;
 
                 if curr_lexeme.text == "(" {
                     match self.fun_ParameterBlock() {
@@ -476,12 +490,12 @@ impl Parser {
                 } else {
                     return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                 }
-                functional_token = self.get_curr_token();
+                curr_lexeme = self.get_curr_token();
                 match self.get_next_token() {
-                    None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
-                        char_pos: functional_token.char_pos, syntax}),
+                    None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num,
+                        char_pos: curr_lexeme.char_pos, syntax}),
                     Some(x) => {
-                        let curr_lexeme = &*x;
+                        let curr_lexeme = x;
                         
                         if curr_lexeme.text == "{" {
                             match self.fun_Block() {
@@ -502,17 +516,17 @@ impl Parser {
 
     fn fun_DeclarationType(&mut self) -> Result<(), MyError> {
         let syntax = String::from("DeclarationType := DataType Identifier");
-        let functional_token = self.get_curr_token();
         match self.fun_DataType() {
             Ok(()) => (),
             Err(e) => println!("{}", e)
         }
+        let functional_token = self.get_curr_token();
 
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let curr_lexeme = &*x;
+                let curr_lexeme = x;
 
                 if matches!(curr_lexeme.token_type, TokenType::Identifier) {
                     Ok(())
@@ -531,17 +545,17 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
                 
                 match self.fun_Constant() {
                     Ok(()) => (),
                     Err(e) => println!("{}", e)
                 }
+                let mut curr_lexeme = self.get_curr_token();
 
                 match self.get_next_token() {
                     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                     Some(x) => {
-                        curr_lexeme = &*x;
+                        curr_lexeme = x;
 
                         if curr_lexeme.text == ";" {
                             Ok(())
@@ -557,17 +571,17 @@ impl Parser {
 
     fn fun_FunctionDeclaration(&mut self) -> Result<(), MyError> {
         let syntax = String::from("FunctionDeclaration := ParameterBlock ;");
-        let functional_token = self.get_curr_token();
         match self.fun_ParameterBlock() {
             Ok(()) => (),
             Err(e) => println!("{}", e)
         }
+        let functional_token = self.get_curr_token();
 
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let curr_lexeme = &*x;
+                let curr_lexeme = x;
 
                 if curr_lexeme.text == ";" {
                     Ok(())
@@ -586,8 +600,8 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
-                let mut nextnext_token;
+                let mut curr_lexeme = x;
+                let nextnext_token;
                 let first_set_Declaration = vec_of_strings!["unsigned", "char", "short",
                  "int", "long", "float", "double"];
                 let first_set_Statement = vec_of_strings!["while", "if", "return",
@@ -600,7 +614,7 @@ impl Parser {
                 match self.peek_nextnext_token() {
                     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                     Some(x) => {
-                        nextnext_token = &*x;
+                        nextnext_token = x;
                     }
                 }
 
@@ -609,9 +623,10 @@ impl Parser {
                         Ok(()) => (),
                         Err(e) => println!("{}", e)
                     }
+                    curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                        Some(x) => curr_lexeme = &*x
+                        Some(x) => curr_lexeme = x
                     }
                 }
 
@@ -624,9 +639,10 @@ impl Parser {
                         Ok(()) => (),
                         Err(e) => println!("{}", e)
                     }
+                    curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                        Some(x) => curr_lexeme = &*x
+                        Some(x) => curr_lexeme = x
                     }
                 }
 
@@ -639,9 +655,10 @@ impl Parser {
                         Ok(()) => (),
                         Err(e) => println!("{}", e)
                     }
+                    curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                        Some(x) => curr_lexeme = &*x
+                        Some(x) => curr_lexeme = x
                     }
                 }
 
@@ -662,7 +679,7 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
                 let first_set_Declaration = vec_of_strings!["unsigned", "char", "short",
                  "int", "long", "float", "double"];
 
@@ -675,16 +692,17 @@ impl Parser {
                         Ok(()) => (),
                         Err(e) => println!("{}", e)
                     }
+                    curr_lexeme = self.get_curr_token();
 
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            curr_lexeme = x;
                             while curr_lexeme.text == "," {
                                 match self.get_next_token() {
                                     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                     Some(x) => {
-                                        curr_lexeme = &*x;
+                                        curr_lexeme = x;
                                         if first_set_Declaration.contains(&curr_lexeme.text) {
                                             match self.fun_Parameter() {
                                                 Ok(()) => (),
@@ -697,13 +715,13 @@ impl Parser {
                                 }
                                 match self.get_next_token() {
                                     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                    Some(x) => curr_lexeme = &*x
+                                    Some(x) => curr_lexeme = x
                                 }
                             }
                             match self.get_next_token() {
                                 None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                 Some(x) => {
-                                    curr_lexeme = &*x;
+                                    curr_lexeme = x;
                                     if curr_lexeme.text == ")" {
                                         return Ok(())
                                     } else {
@@ -722,7 +740,7 @@ impl Parser {
         
     }
 
-    fn fun_DataType(&self) -> Result<(), MyError> {
+    fn fun_DataType(&mut self) -> Result<(), MyError> {
         let syntax = String::from("DataType := IntegerType | FloatType");
         let curr_lexeme = self.get_curr_token();
         let first_set_IntergerType = vec_of_strings!["unsigned", "char", "short",
@@ -765,7 +783,7 @@ impl Parser {
         match self.peek_next_token() {
             None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num,
                 char_pos: curr_lexeme.char_pos, syntax}),
-            Some(x) => next_token = &*x
+            Some(x) => next_token = x
         }
 
         if matches!(curr_lexeme.token_type, TokenType::Identifier) && next_token.text == "=" {
@@ -799,16 +817,17 @@ impl Parser {
                 Ok(()) => (),
                 Err(e) => println!("{}", e)
             }
+            curr_lexeme = self.get_curr_token();
 
             match self.get_next_token() {
                 None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                 Some(x) => {
-                    curr_lexeme = &*x;
+                    curr_lexeme = x;
                     if curr_lexeme.text == ";" {
                         match self.get_next_token() {
                             None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                             Some(x) => {
-                                curr_lexeme = &*x;
+                                curr_lexeme = x;
                                 if curr_lexeme.text == ")" {
                                     Ok(())
                                 } else {
@@ -828,17 +847,17 @@ impl Parser {
 
     fn fun_Parameter(&mut self) -> Result<(), MyError> {
         let syntax = String::from("Parameter := DataType Identifier");
-        let functional_token = self.get_curr_token();
         match self.fun_DataType() {
             Ok(()) => (),
             Err(e) => println!("{}", e)
         }
+        let functional_token = self.get_curr_token();
 
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let curr_lexeme = &*x;
+                let curr_lexeme = x;
 
                 if matches!(curr_lexeme.token_type, TokenType::Identifier) {
                     Ok(())
@@ -859,7 +878,7 @@ impl Parser {
             match self.get_next_token() {
                 None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                 Some(x) => {
-                    curr_lexeme = &*x;
+                    curr_lexeme = x;
                     
                     if first_set_IntergerType.contains(&curr_lexeme.text) {
                         Ok(())
@@ -892,20 +911,20 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
 
                 if curr_lexeme.text == "=" {
                     let mut nextnext_token;
                     match self.peek_nextnext_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            nextnext_token = &*x;
+                            nextnext_token = x;
                         }
                     }
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            curr_lexeme = x;
                         }
                     }
 
@@ -913,13 +932,13 @@ impl Parser {
                         match self.peek_nextnext_token() {
                             None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                             Some(x) => {
-                                nextnext_token = &*x;
+                                nextnext_token = x;
                             }
                         }
                         match self.get_next_token() {
                             None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                             Some(x) => {
-                                curr_lexeme = &*x;
+                                curr_lexeme = x;
                             }
                         }
                     }
@@ -931,10 +950,11 @@ impl Parser {
                             Ok(()) => (),
                             Err(e) => println!("{}", e)
                         }
+                        curr_lexeme = self.get_curr_token();
                         match self.get_next_token() {
                             None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                             Some(x) => {
-                                curr_lexeme = &*x;
+                                curr_lexeme = x;
 
                                 if curr_lexeme.text == ";" {
                                     Ok(())
@@ -961,28 +981,29 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
                 if curr_lexeme.text == "(" {
 
                     match self.get_next_token() {
                         None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            
                             match self.fun_Expression() {
                                 Ok(()) => (),
                                 Err(e) => println!("{}", e)
                             }
+                            curr_lexeme = self.get_curr_token();
 
                             match self.get_next_token() {
                                 None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                 Some(x) => {
-                                    curr_lexeme = &*x;
+                                    curr_lexeme = x;
                                     if curr_lexeme.text == ")" {
 
                                         match self.get_next_token() {
                                             None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                             Some(x) => {
-                                                curr_lexeme = &*x;
+                                                curr_lexeme = x;
                                                 if curr_lexeme.text == "{" {
                                                     match self.fun_Block() {
                                                         Ok(()) => (),
@@ -1016,28 +1037,29 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
                 if curr_lexeme.text == "(" {
 
                     match self.get_next_token() {
                         None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            
                             match self.fun_Expression() {
                                 Ok(()) => (),
                                 Err(e) => println!("{}", e)
                             }
+                            curr_lexeme = self.get_curr_token();
 
                             match self.get_next_token() {
                                 None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                 Some(x) => {
-                                    curr_lexeme = &*x;
+                                    curr_lexeme = x;
                                     if curr_lexeme.text == ")" {
 
                                         match self.get_next_token() {
                                             None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                             Some(x) => {
-                                                curr_lexeme = &*x;
+                                                curr_lexeme = x;
                                                 if curr_lexeme.text == "{" {
                                                     match self.fun_Block() {
                                                         Ok(()) => (),
@@ -1071,16 +1093,17 @@ impl Parser {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+
                 match self.fun_Expression() {
                     Ok(()) => (),
                     Err(e) => println!("{}", e)
                 }
+                let mut curr_lexeme = self.get_curr_token();
                 
                 match self.get_next_token() {
                     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                     Some(x) => {
-                        curr_lexeme = &*x;
+                        curr_lexeme = x;
                         if curr_lexeme.text == ";" {
                             Ok(())
                         } else {
@@ -1102,12 +1125,11 @@ impl Parser {
         match self.get_next_token() {
             None => Ok(()),
             Some(x) => {
-                let mut curr_lexeme = &*x;
                 match self.fun_RelationOperator() {
                     Ok(()) => (),
                     Err(e) => println!("{}", e)
                 }
-                curr_lexeme = &self.get_curr_token();
+                let curr_lexeme = self.get_curr_token();
 
                 match self.get_next_token() {
                     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
@@ -1133,13 +1155,13 @@ impl Parser {
         match self.get_next_token() {
             None => Ok(()),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
                 while curr_lexeme.text == "+" || curr_lexeme.text == "-" {
 
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            curr_lexeme = x;
                             match self.fun_Term() {
                                 Ok(()) => (),
                                 Err(e) => println!("{}", e)
@@ -1147,7 +1169,7 @@ impl Parser {
 
                             match self.get_next_token() {
                                 None => return Ok(()),
-                                Some(x) => curr_lexeme = &*x
+                                Some(x) => curr_lexeme = x
                             }
                         }
                     }
@@ -1167,7 +1189,7 @@ impl Parser {
         match self.get_next_token() {
             None => Ok(()),
             Some(x) => {
-                let mut curr_lexeme = &*x;
+                let mut curr_lexeme = x;
                 while curr_lexeme.text == "*" || curr_lexeme.text == "/" {
 
                     match self.get_next_token() {
@@ -1180,7 +1202,7 @@ impl Parser {
 
                             match self.get_next_token() {
                                 None => return Ok(()),
-                                Some(x) => curr_lexeme = &*x
+                                Some(x) => curr_lexeme = x
                             }
                         }
                     }
@@ -1208,7 +1230,7 @@ impl Parser {
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
-                            curr_lexeme = &*x;
+                            curr_lexeme = x;
                             if curr_lexeme.text == ")" {
                                 Ok(())
                             } else {
@@ -1226,7 +1248,7 @@ impl Parser {
             match self.get_next_token() {
                 None => return Ok(()),
                 Some(x) => {
-                    curr_lexeme = &*x;
+                    curr_lexeme = x;
                     if curr_lexeme.text == "(" {
 
                         match self.get_next_token() {
@@ -1241,7 +1263,7 @@ impl Parser {
                                 match self.get_next_token() {
                                     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                                     Some(x) => {
-                                        curr_lexeme = &*x;
+                                        curr_lexeme = x;
 
                                         while curr_lexeme.text == "," {
 
@@ -1256,7 +1278,7 @@ impl Parser {
 
                                                     match self.get_next_token() {
                                                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                                        Some(x) => curr_lexeme = &*x
+                                                        Some(x) => curr_lexeme = x
                                                     }
                                                 }
                                             }
@@ -1313,6 +1335,10 @@ fn main() {
     println!("{:?}", my_cstream.get_content());
     
     let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
-
-
+    println!("{:?}", &all_tokens);
+    let mut my_parser = Parser::new(all_tokens);
+    match my_parser.fun_Program() {
+        Ok(()) => (),
+        Err(e) => println!("{}", e),
+      }
 }
