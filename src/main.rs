@@ -377,20 +377,25 @@ impl Parser {
             //Err(e) => println!("{}", e)
             Err(e) => return Err(e)
         }
-
+        let mut functional_token = self.get_curr_token();
         match self.get_next_token() {
-            None => Ok(()),
+            //None => Ok(()),
+            None => Err(MyError::SyntaxError{line_num: functional_token.line_num, char_pos: functional_token.char_pos, syntax}),
             Some(x) => {
                 let curr_lexeme = x;
-
-                if curr_lexeme.text == "=" {
+                if curr_lexeme.text == ";"{
+                    Ok(())
+                }//though [= constant], we also need ';' at the end of the line
+                //Variable Declaration : = constant
+                else if curr_lexeme.text == "=" {
                     match self.fun_VariableDeclaration() {
                         Ok(()) => (),
                         //Err(e) => println!("{}", e)
                         Err(e) => return Err(e)
                     }
                     Ok(())
-                } else if curr_lexeme.text == "(" {
+                } // FunctionDeclaration
+                else if curr_lexeme.text == "(" {
                     match self.fun_FunctionDeclaration() {
                         Ok(()) => (),
                         //Err(e) => println!("{}", e)
