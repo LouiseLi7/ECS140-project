@@ -575,7 +575,7 @@ impl Parser {
             Err(e) => return Err(e)
         }
         let functional_token = self.get_curr_token();
-        
+
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
@@ -684,7 +684,7 @@ impl Parser {
                 let mut curr_lexeme = x;
                 let first_set_Declaration = vec_of_strings!["unsigned", "char", "short",
                  "int", "long", "float", "double"];
-
+                
                 if curr_lexeme.text == ")" {
                     return Ok(())
                 }
@@ -722,17 +722,25 @@ impl Parser {
                                     Some(x) => curr_lexeme = x
                                 }
                             }
-                            match self.get_next_token() {
-                                None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                Some(x) => {
-                                    curr_lexeme = x;
-                                    if curr_lexeme.text == ")" {
-                                        return Ok(())
-                                    } else {
-                                        return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                                    }
-                                }
-                            } 
+                            //IN this case, already got the token not equal to ','+parameter , so we need to compare it to ')' directly.
+                            if curr_lexeme.text ==")"{
+                                return Ok(())
+                            }
+                            else {
+                                return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                            }
+
+                            // match self.get_next_token() {
+                            //     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                            //     Some(x) => {
+                            //         curr_lexeme = x;
+                            //         if curr_lexeme.text == ")" {
+                            //             return Ok(())
+                            //         } else {
+                            //             return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                            //         }
+                            //     }
+                            // } 
                         }
                     }
                 } else {
@@ -1360,7 +1368,7 @@ fn main() {
     // let args: Vec<String> = env::args().collect(); 
     // let filename = args[1].clone();
     // let mut my_cstream = Cstream::new(&filename);
-    let mut my_cstream = Cstream::new(&"./examples/example8.x".to_string());
+    let mut my_cstream = Cstream::new(&"./examples/example1.x".to_string());
     println!("{:?}", my_cstream.get_content());
     
     let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
