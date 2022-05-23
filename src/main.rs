@@ -83,11 +83,6 @@ impl Token {
         return self.token_type.as_str().to_string()
     }// return the token type value as string 
 }
-
-// struct Scanner {
-//     fn new()
-// }
-
 fn check_token_type_char(text:char)->TokenType{
     if text =='('||text ==')'||text =='{'||text =='}'||text ==','||text =='}'||text =='='||text =='<'||text =='>'||text =='+'||text =='-'||text =='*'||text =='/'||text ==';'{
         return TokenType::Operator;
@@ -202,8 +197,8 @@ fn Scanner(file: &mut Cstream)-> Vec<Token>{
     let mut token_vector = Vec::new();
     token_vector.push(current_token.clone());
     while file.char_pos<f.len(){
+        println!("{:?},{:?},{:?},{:?}",current_token.text,current_token.return_token_type(),current_token.line_num,current_token.char_pos);
         current_token = get_next_token(file,current_token);
-        println!("{:?},{:?}",current_token.text,current_token.return_token_type());
         token_vector.push(current_token.clone());
     }
     return token_vector;
@@ -250,7 +245,7 @@ fn get_next_token(file: &mut Cstream,current_t:Token)->Token{
         }
 
         let mut new_token = Token::new(f[pos_start..pos_end].to_string(),token_type);
-        new_token.char_pos = pos_start as i32 -current_t.pos_in_file;
+        new_token.char_pos = pos_start as i32 -current_t.pos_in_file+current_t.char_pos;
         new_token.line_num = current_t.line_num;
         new_token.token_length = token_length as i32;
         new_token.pos_in_file = pos_start as i32;
@@ -258,10 +253,6 @@ fn get_next_token(file: &mut Cstream,current_t:Token)->Token{
     }
 }
 
-
-
-
-/* Stage 3 */
 macro_rules! vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
 }
@@ -327,7 +318,8 @@ impl Parser {
                 while first_set_Declaration.contains(&curr_lexeme.text) {
                     match self.fun_Declaration() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
 
@@ -340,6 +332,7 @@ impl Parser {
                 if curr_lexeme.text == "void" {
                     match self.fun_MainDeclaration() {
                         Ok(()) => (),
+                        //Err(e) => println!("{}", e)
                         Err(e) => return Err(e)
                     }
                 } else {
@@ -356,7 +349,8 @@ impl Parser {
                         while first_set_Declaration.contains(&curr_lexeme.text) {
                             match self.fun_FunctionDefinition() {
                                 Ok(()) => (),
-                                Err(e) => println!("{}", e)
+                                //Err(e) => println!("{}", e)
+                                Err(e) => return Err(e)
                             }
                             match self.get_next_token() {
                                 None => {
@@ -366,7 +360,7 @@ impl Parser {
                                 Some(x) => curr_lexeme = x
                             }
                         }
-                        Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                        return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                     }
                 }
                 
@@ -375,17 +369,13 @@ impl Parser {
         }
     }
 
-    
-
-    
-    
-
     fn fun_Declaration(&mut self) -> Result<(), MyError> {
         let syntax = String::from("Declaration := DeclarationType (VariableDeclaration
              | FunctionDeclaration)");
         match self.fun_DeclarationType() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
 
         match self.get_next_token() {
@@ -396,13 +386,15 @@ impl Parser {
                 if curr_lexeme.text == "=" {
                     match self.fun_VariableDeclaration() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     Ok(())
                 } else if curr_lexeme.text == "(" {
                     match self.fun_FunctionDeclaration() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     Ok(())
                 } else {
@@ -443,7 +435,8 @@ impl Parser {
                                                     if curr_lexeme.text == "{" {
                                                         match self.fun_Block() {
                                                             Ok(()) => (),
-                                                            Err(e) => println!("{}", e)
+                                                            //Err(e) => println!("{}", e)
+                                                            Err(e) => return Err(e)
                                                         }
                                                         Ok(())
                                                     } else {
@@ -472,7 +465,8 @@ impl Parser {
         let syntax = String::from("FunctionDefinition := DeclarationType ParameterBlock Block");
         match self.fun_DeclarationType() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
         let mut curr_lexeme = self.get_curr_token();
 
@@ -485,7 +479,8 @@ impl Parser {
                 if curr_lexeme.text == "(" {
                     match self.fun_ParameterBlock() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                 } else {
                     return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
@@ -500,7 +495,8 @@ impl Parser {
                         if curr_lexeme.text == "{" {
                             match self.fun_Block() {
                                 Ok(()) => (),
-                                Err(e) => println!("{}", e)
+                                //Err(e) => println!("{}", e)
+                                Err(e) => return Err(e)
                             }
                             Ok(())
                         } else {
@@ -518,7 +514,8 @@ impl Parser {
         let syntax = String::from("DeclarationType := DataType Identifier");
         match self.fun_DataType() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
         let functional_token = self.get_curr_token();
 
@@ -548,7 +545,8 @@ impl Parser {
                 
                 match self.fun_Constant() {
                     Ok(()) => (),
-                    Err(e) => println!("{}", e)
+                    //Err(e) => println!("{}", e)
+                    Err(e) => return Err(e)
                 }
                 let mut curr_lexeme = self.get_curr_token();
 
@@ -573,7 +571,8 @@ impl Parser {
         let syntax = String::from("FunctionDeclaration := ParameterBlock ;");
         match self.fun_ParameterBlock() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
         let functional_token = self.get_curr_token();
 
@@ -621,7 +620,8 @@ impl Parser {
                 while first_set_Declaration.contains(&curr_lexeme.text) && nextnext_token.text != "{" {
                     match self.fun_Declaration() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
@@ -637,7 +637,8 @@ impl Parser {
                 while matches!(curr_lexeme.token_type, TokenType::Identifier) || first_set_Statement.contains(&curr_lexeme.text) {
                     match self.fun_Statement() {
                         Ok(()) => (),
-                        Err(e) =>  return Err(e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
@@ -653,7 +654,8 @@ impl Parser {
                 while first_set_Declaration.contains(&curr_lexeme.text) {
                     match self.fun_FunctionDefinition() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
@@ -682,7 +684,7 @@ impl Parser {
                 let mut curr_lexeme = x;
                 let first_set_Declaration = vec_of_strings!["unsigned", "char", "short",
                  "int", "long", "float", "double"];
-
+                
                 if curr_lexeme.text == ")" {
                     return Ok(())
                 }
@@ -690,7 +692,8 @@ impl Parser {
                 if first_set_Declaration.contains(&curr_lexeme.text) {
                     match self.fun_Parameter() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        //Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
 
@@ -706,7 +709,8 @@ impl Parser {
                                         if first_set_Declaration.contains(&curr_lexeme.text) {
                                             match self.fun_Parameter() {
                                                 Ok(()) => (),
-                                                Err(e) => println!("{}", e)
+                                                //Err(e) => println!("{}", e)
+                                                Err(e) => return Err(e)
                                             }
                                         } else {
                                             return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
@@ -718,17 +722,25 @@ impl Parser {
                                     Some(x) => curr_lexeme = x
                                 }
                             }
-                            match self.get_next_token() {
-                                None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                Some(x) => {
-                                    curr_lexeme = x;
-                                    if curr_lexeme.text == ")" {
-                                        return Ok(())
-                                    } else {
-                                        return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                                    }
-                                }
-                            } 
+                            //IN this case, already got the token not equal to ','+parameter , so we need to compare it to ')' directly.
+                            if curr_lexeme.text ==")"{
+                                return Ok(())
+                            }
+                            else {
+                                return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                            }
+
+                            // match self.get_next_token() {
+                            //     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                            //     Some(x) => {
+                            //         curr_lexeme = x;
+                            //         if curr_lexeme.text == ")" {
+                            //             return Ok(())
+                            //         } else {
+                            //             return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                            //         }
+                            //     }
+                            // } 
                         }
                     }
                 } else {
@@ -750,13 +762,15 @@ impl Parser {
         if first_set_IntergerType.contains(&curr_lexeme.text) {
             match self.fun_InterType() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             Ok(())
         } else if first_set_FloatType.contains(&curr_lexeme.text) {
             match self.fun_FloatType() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             Ok(())
         } else {
@@ -789,25 +803,29 @@ impl Parser {
         if matches!(curr_lexeme.token_type, TokenType::Identifier) && next_token.text == "=" {
             match self.fun_Assignment() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             Ok(())
         } else if curr_lexeme.text == "while" {
             match self.fun_WhileLoop() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             Ok(())
         } else if curr_lexeme.text == "if" {
             match self.fun_WhileLoop() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             Ok(())
         } else if curr_lexeme.text == "return" {
             match self.fun_IfStatement() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             Ok(())
         } else if curr_lexeme.text == "(" || matches!(curr_lexeme.token_type, TokenType::IntConstant) ||
@@ -815,7 +833,8 @@ impl Parser {
         matches!(curr_lexeme.token_type, TokenType::Identifier){
             match self.fun_Expression() {
                 Ok(()) => (),
-                Err(e) => println!("{}", e)
+                //Err(e) => println!("{}", e)
+                Err(e) => return Err(e)
             }
             curr_lexeme = self.get_curr_token();
 
@@ -849,7 +868,8 @@ impl Parser {
         let syntax = String::from("Parameter := DataType Identifier");
         match self.fun_DataType() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
         let functional_token = self.get_curr_token();
 
@@ -948,7 +968,8 @@ impl Parser {
                     matches!(curr_lexeme.token_type, TokenType::Identifier) {
                         match self.fun_Expression() {
                             Ok(()) => (),
-                            Err(e) => println!("{}", e)
+                            //Err(e) => println!("{}", e)
+                            Err(e) => return Err(e)
                         }
                         curr_lexeme = self.get_curr_token();
                         match self.get_next_token() {
@@ -990,7 +1011,8 @@ impl Parser {
                             
                             match self.fun_Expression() {
                                 Ok(()) => (),
-                                Err(e) => println!("{}", e)
+                                //Err(e) => println!("{}", e)
+                                Err(e) => return Err(e)
                             }
                             curr_lexeme = self.get_curr_token();
 
@@ -1007,7 +1029,8 @@ impl Parser {
                                                 if curr_lexeme.text == "{" {
                                                     match self.fun_Block() {
                                                         Ok(()) => (),
-                                                        Err(e) => println!("{}", e)
+                                                        //Err(e) => println!("{}", e)
+                                                        Err(e) => return Err(e)
                                                     }
                                                     Ok(())
                                                 } else {
@@ -1046,7 +1069,8 @@ impl Parser {
                             
                             match self.fun_Expression() {
                                 Ok(()) => (),
-                                Err(e) => println!("{}", e)
+                                //Err(e) => println!("{}", e)
+                                Err(e) => return Err(e)
                             }
                             curr_lexeme = self.get_curr_token();
 
@@ -1063,7 +1087,8 @@ impl Parser {
                                                 if curr_lexeme.text == "{" {
                                                     match self.fun_Block() {
                                                         Ok(()) => (),
-                                                        Err(e) => println!("{}", e)
+                                                        //Err(e) => println!("{}", e)
+                                                        Err(e) => return Err(e)
                                                     }
                                                     Ok(())
                                                 } else {
@@ -1096,7 +1121,8 @@ impl Parser {
 
                 match self.fun_Expression() {
                     Ok(()) => (),
-                    Err(e) => println!("{}", e)
+                    //Err(e) => println!("{}", e)
+                    Err(e) => return Err(e)
                 }
                 let mut curr_lexeme = self.get_curr_token();
                 
@@ -1119,7 +1145,8 @@ impl Parser {
         let syntax = String::from("Expression := SimpleExpression [ RelationOperator SimpleExpression ]");
         match self.fun_SimpleExpression() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
 
         match self.get_next_token() {
@@ -1127,7 +1154,8 @@ impl Parser {
             Some(x) => {
                 match self.fun_RelationOperator() {
                     Ok(()) => (),
-                    Err(e) => println!("{}", e)
+                    //Err(e) => println!("{}", e)
+                    Err(e) => return Err(e)
                 }
                 let curr_lexeme = self.get_curr_token();
 
@@ -1136,7 +1164,8 @@ impl Parser {
                     Some(x) => {
                         match self.fun_SimpleExpression() {
                             Ok(()) => (),
-                            Err(e) => println!("{}", e)
+                            //Err(e) => println!("{}", e)
+                            Err(e) => return Err(e)
                         }
                         Ok(())
                     }
@@ -1149,7 +1178,8 @@ impl Parser {
         let syntax = String::from("SimpleExpression := Term { AddOperator Term }");
         match self.fun_Term() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
 
         match self.get_next_token() {
@@ -1164,7 +1194,8 @@ impl Parser {
                             curr_lexeme = x;
                             match self.fun_Term() {
                                 Ok(()) => (),
-                                Err(e) => println!("{}", e)
+                                //Err(e) => println!("{}", e)
+                                Err(e) => return Err(e)
                             }
 
                             match self.get_next_token() {
@@ -1183,7 +1214,8 @@ impl Parser {
         let syntax = String::from("Term := Factor { MultapgrAtgr Factor }");
         match self.fun_Factor() {
             Ok(()) => (),
-            Err(e) => println!("{}", e)
+            //Err(e) => println!("{}", e)
+            Err(e) => return Err(e)
         }
 
         match self.get_next_token() {
@@ -1197,7 +1229,8 @@ impl Parser {
                         Some(x) => {
                             match self.fun_Factor() {
                                 Ok(()) => (),
-                                Err(e) => println!("{}", e)
+                                //Err(e) => println!("{}", e)
+                                Err(e) => return Err(e)
                             }
 
                             match self.get_next_token() {
@@ -1223,7 +1256,7 @@ impl Parser {
                 Some(x) => {
                     match self.fun_Expression() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
 
                     curr_lexeme = self.get_curr_token();
@@ -1256,7 +1289,7 @@ impl Parser {
                             Some(x) => {
                                 match self.fun_Expression() {
                                     Ok(()) => (),
-                                    Err(e) => println!("{}", e)
+                                    Err(e) => return Err(e)
                                 }
                                 curr_lexeme = self.get_curr_token();
                                 if curr_lexeme.text == ")" {
@@ -1277,7 +1310,7 @@ impl Parser {
                                                 Some(x) => {
                                                     match self.fun_Expression() {
                                                         Ok(()) => (),
-                                                        Err(e) => println!("{}", e)
+                                                        Err(e) => return Err(e)
                                                     }
                                                     curr_lexeme = self.get_curr_token();
 
@@ -1341,10 +1374,17 @@ fn main() {
     println!("{:?}", my_cstream.get_content());
     
     let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
-    println!("{:?}", &all_tokens);
+    // println!("{:?}", &all_tokens);
     let mut my_parser = Parser::new(all_tokens);
     match my_parser.fun_Program() {
         Ok(()) => (),
         Err(e) => println!("{}", e),
       }
 }
+// fn main() {
+//     let mut f = Cstream::new(&"./examples/example7.x".to_string());
+//     let mut content = f.get_content();
+//     let vector = Scanner(&mut f);
+//     //println!("{:?}", f.get_content());
+//     //println!("{:?}", vector.first().unwrap().return_token_type());
+// }

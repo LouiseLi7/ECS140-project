@@ -340,7 +340,9 @@ impl Parser {
                 if curr_lexeme.text == "void" {
                     match self.fun_MainDeclaration() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        Err(e) => {println!("please we are here");
+                            return Err(e);
+                            }
                     }
                 } else {
                     return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
@@ -349,6 +351,7 @@ impl Parser {
                 match self.get_next_token() {
                     None => {
                         println!("Input program is syntactacilly correct.");
+                        println!("why we got here?");
                         Ok(())
                     }
                     Some(x) => {
@@ -637,7 +640,7 @@ impl Parser {
                 while matches!(curr_lexeme.token_type, TokenType::Identifier) || first_set_Statement.contains(&curr_lexeme.text) {
                     match self.fun_Statement() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        Err(e) =>  return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
@@ -1213,7 +1216,7 @@ impl Parser {
     }
 
     fn fun_Factor(&mut self) -> Result<(), MyError> {
-        let syntax = String::from("Term := Factor { MultapgrAtgr Factor }");
+        let syntax = String::from("Factor := ( ( Expression ) ) | Constant | (Identifier [ ( [ Expression {, Expression}] ) ] ) ");
         let mut curr_lexeme = self.get_curr_token();
 
         if curr_lexeme.text == "(" {
@@ -1259,10 +1262,15 @@ impl Parser {
                                     Err(e) => println!("{}", e)
                                 }
                                 curr_lexeme = self.get_curr_token();
+                                if curr_lexeme.text == ")" {
+                                    return Ok(())
+                                }
+                                
 
                                 match self.get_next_token() {
-                                    None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                                    None => return Ok(()),
                                     Some(x) => {
+                                        
                                         curr_lexeme = x;
 
                                         while curr_lexeme.text == "," {
@@ -1291,10 +1299,11 @@ impl Parser {
                                         }
                                     }
                                 }
+                                
                             }
                         }
                     } else {
-                        Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                        Ok(())
                     }
                 }
             }
