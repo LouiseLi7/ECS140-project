@@ -1,10 +1,7 @@
-<<<<<<< Updated upstream
-=======
 use custom_error::custom_error;
 use std::env;
 
 #[derive(Clone)]
->>>>>>> Stashed changes
 struct Cstream {
     filename: String,
     char_pos: usize,
@@ -22,18 +19,22 @@ impl Cstream {
 
     pub fn get_next_char(&mut self) -> Option<char> {
         self.char_pos += 1;
-        return self.contents.chars().nth(self.char_pos - 1);
+        return self.get_content().chars().nth(self.char_pos - 1);
     }
 
     pub fn get_content(&self) -> &String {
         return &self.contents;
     }
+
+    // pub fn clone(&self)->Cstream {
+    //     let mut file = Cstream::new(&self.filename);
+    //     file.char_pos = self.char_pos;
+    //     file.contents = self.get_content().to_string();
+    //     return file;
+    // }
 }
 
-<<<<<<< Updated upstream
-=======
-#[derive(Copy, Clone,Debug)]
->>>>>>> Stashed changes
+#[derive(Copy, Clone, Debug)]
 enum TokenType {
     IntConstant,
     FloatConstant,
@@ -43,8 +44,6 @@ enum TokenType {
     Invalid
 }
 
-<<<<<<< Updated upstream
-=======
 impl TokenType {
     fn as_str(&self) -> &'static str {
         match &self {
@@ -58,13 +57,14 @@ impl TokenType {
     }
 }// transform the content of TokenType as string 
 
-#[derive(Clone,Debug)]
->>>>>>> Stashed changes
+#[derive(Clone, Debug)]
 struct Token {
     text: String,
     token_type: TokenType,
     line_num: i32,
-    char_pos: i32
+    char_pos: i32,
+    token_length: i32,
+    pos_in_file:i32
 }
 
 impl Token {
@@ -73,22 +73,16 @@ impl Token {
           text: text,
           token_type: token_type,
           line_num: 0,
-          char_pos: 0
+          char_pos: 0,
+          token_length: 0, // another feature
+          pos_in_file: 0 //another feature
         }
-      }
+    }
+
+    fn return_token_type(&self)->String{
+        return self.token_type.as_str().to_string()
+    }// return the token type value as string 
 }
-
-// struct Scanner {
-//     fn new()
-// }
-
-<<<<<<< Updated upstream
-
-fn main() {
-    let mut f = Cstream::new(&"test.txt".to_string());
-    println!("{:?}", f.get_content());
-    println!("{:?}", f.get_next_char());
-=======
 fn check_token_type_char(text:char)->TokenType{
     if text =='('||text ==')'||text =='{'||text =='}'||text ==','||text =='}'||text =='='||text =='<'||text =='>'||text =='+'||text =='-'||text =='*'||text =='/'||text ==';'{
         return TokenType::Operator;
@@ -581,7 +575,7 @@ impl Parser {
             Err(e) => return Err(e)
         }
         let functional_token = self.get_curr_token();
-
+        
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
@@ -1366,7 +1360,7 @@ fn main() {
     // let args: Vec<String> = env::args().collect(); 
     // let filename = args[1].clone();
     // let mut my_cstream = Cstream::new(&filename);
-    let mut my_cstream = Cstream::new(&"./examples/example7.x".to_string());
+    let mut my_cstream = Cstream::new(&"./examples/example8.x".to_string());
     println!("{:?}", my_cstream.get_content());
     
     let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
@@ -1376,7 +1370,6 @@ fn main() {
         Ok(()) => (),
         Err(e) => println!("{}", e),
       }
->>>>>>> Stashed changes
 }
 // fn main() {
 //     let mut f = Cstream::new(&"./examples/example7.x".to_string());
