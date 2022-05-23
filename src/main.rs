@@ -340,7 +340,7 @@ impl Parser {
                 if curr_lexeme.text == "void" {
                     match self.fun_MainDeclaration() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        Err(e) => return Err(e)
                     }
                 } else {
                     return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
@@ -637,7 +637,7 @@ impl Parser {
                 while matches!(curr_lexeme.token_type, TokenType::Identifier) || first_set_Statement.contains(&curr_lexeme.text) {
                     match self.fun_Statement() {
                         Ok(()) => (),
-                        Err(e) => println!("{}", e)
+                        Err(e) =>  return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
                     match self.get_next_token() {
