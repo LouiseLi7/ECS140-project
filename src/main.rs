@@ -133,9 +133,11 @@ fn check_token_type_string(text:String)->TokenType{
         let mut letters = true;
         for c in text.chars(){
             if !c.is_alphabetic(){
-                letters = false;
+                if !c.is_numeric(){
+                    letters = false;
+                }
             }
-        }
+        } //seems like input1 is also acceptable?
         if letters==true{
             return TokenType::Identifier;
         }
@@ -172,11 +174,11 @@ fn Scanner(file: &mut Cstream)-> Vec<Token>{
     let pos_start = file.char_pos-1; //because the char_pos has +1 and the next_char is the char in the pos of char_pos -1 
     let mut token_length = 0;
     println!("{},{}",next_char,file.char_pos);
-    if next_char =='(' && next_char ==')'&& next_char =='{'&& next_char =='}'&& next_char ==';'{
+    if next_char =='(' || next_char ==')'|| next_char =='{'|| next_char =='}'|| next_char ==';'|| next_char == ','{
         token_length = 1;
     }
     else{
-        while next_char != ' ' && next_char !='\n' && next_char !='('&& next_char !=')'&& next_char !='{'&& next_char !='}'&& next_char !=';'{
+        while next_char != ' ' && next_char !='\n' && next_char !='('&& next_char !=')'&& next_char !='{'&& next_char !='}'&& next_char !=';' && next_char != ','{
             token_length = token_length+1;
             next_char = file.get_next_char().unwrap();
         }
@@ -223,14 +225,14 @@ fn get_next_token(file: &mut Cstream,current_t:Token)->Token{
     else {
         let pos_start = file.char_pos-1;
         let mut token_length = 0;
-        if next_char =='('|| next_char ==')'|| next_char =='{'|| next_char =='}' || next_char ==';'{
+        if next_char =='('|| next_char ==')'|| next_char =='{'|| next_char =='}' || next_char ==';'|| next_char == ','{
             token_length = 1;
             if file.char_pos < f.len(){
                 next_char = file.get_next_char().unwrap();
             }
         }
         else{
-            while next_char != ' ' && next_char !='\n'&&next_char !='('&& next_char !=')'&& next_char !='{'&& next_char !='}'&& next_char !=';'{
+            while next_char != ' ' && next_char !='\n'&&next_char !='('&& next_char !=')'&& next_char !='{'&& next_char !='}'&& next_char !=';' && next_char != ',' {
                 token_length = token_length+1;
                 next_char = file.get_next_char().unwrap();
             }
@@ -696,7 +698,6 @@ impl Parser {
     fn fun_ParameterBlock(&mut self) -> Result<(), MyError> {
         let syntax = String::from("ParameterBlock := ( [Parameter {, Parameter}] )");
         let functional_token = self.get_curr_token();
-
         match self.get_next_token() {
             None => Err(MyError::SyntaxError{line_num: functional_token.line_num,
                 char_pos: functional_token.char_pos, syntax}),
@@ -716,7 +717,6 @@ impl Parser {
                         Err(e) => return Err(e)
                     }
                     curr_lexeme = self.get_curr_token();
-
                     match self.get_next_token() {
                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                         Some(x) => {
