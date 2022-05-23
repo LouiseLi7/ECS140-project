@@ -1213,7 +1213,7 @@ impl Parser {
     }
 
     fn fun_Factor(&mut self) -> Result<(), MyError> {
-        let syntax = String::from("Term := Factor { MultapgrAtgr Factor }");
+        let syntax = String::from("Factor := ( ( Expression ) ) | Constant | (Identifier [ ( [ Expression {, Expression}] ) ] ) ");
         let mut curr_lexeme = self.get_curr_token();
 
         if curr_lexeme.text == "(" {
@@ -1259,10 +1259,15 @@ impl Parser {
                                     Err(e) => println!("{}", e)
                                 }
                                 curr_lexeme = self.get_curr_token();
+                                if curr_lexeme.text == ")" {
+                                    return Ok(())
+                                }
+                                
 
                                 match self.get_next_token() {
-                                    None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                                    None => return Ok(()),
                                     Some(x) => {
+                                        
                                         curr_lexeme = x;
 
                                         while curr_lexeme.text == "," {
@@ -1291,10 +1296,11 @@ impl Parser {
                                         }
                                     }
                                 }
+                                
                             }
                         }
                     } else {
-                        Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                        Ok(())
                     }
                 }
             }
