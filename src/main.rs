@@ -1041,57 +1041,38 @@ impl Parser {
                                 Err(e) => return Err(e)
                             }
                             curr_lexeme = self.get_curr_token();
-                            if curr_lexeme.text == ")" {
-
-                                match self.get_next_token() {
-                                    None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                    Some(x) => {
-                                        curr_lexeme = x;
-                                        if curr_lexeme.text == "{" {
-                                            match self.fun_Block() {
-                                                Ok(()) => (),
-                                                //Err(e) => println!("{}", e)
-                                                Err(e) => return Err(e)
+                            match self.get_next_token(){
+                                None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                                Some(x) => {
+                                    curr_lexeme = x;
+                                    if curr_lexeme.text == ")"{
+                                        match self.get_next_token() {
+                                            None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                                            Some(x) => {
+                                                curr_lexeme = x;
+                                                if curr_lexeme.text == "{" {
+                                                    match self.fun_Block() {
+                                                        Ok(()) => (),
+                                                        Err(e) => return Err(e)
+                                                    }
+                                                    return Ok(())
+                                                } else {
+                                                    return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                                                }
+                                                println!("w1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                                                return Ok(());
                                             }
-                                            Ok(())
-                                        } else {
-                                            Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                                         }
                                     }
+                                    else {
+                                        return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                                    }
                                 }
-                            } else {
-                                Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                             }
-                            // match self.get_next_token() {
-                            //     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                            //     Some(x) => {
-                            //         curr_lexeme = x;
-                            //         if curr_lexeme.text == ")" {
-
-                            //             match self.get_next_token() {
-                            //                 None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                            //                 Some(x) => {
-                            //                     curr_lexeme = x;
-                            //                     if curr_lexeme.text == "{" {
-                            //                         match self.fun_Block() {
-                            //                             Ok(()) => (),
-                            //                             //Err(e) => println!("{}", e)
-                            //                             Err(e) => return Err(e)
-                            //                         }
-                            //                         Ok(())
-                            //                     } else {
-                            //                         Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                            //                     }
-                            //                 }
-                            //             }
-                            //         } else {
-                            //             Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                            //         }
-                            //     }
-                            // }
                         }
                     }
-                } else {
+                } 
+                else {
                     Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                 }
             }
@@ -1171,26 +1152,39 @@ impl Parser {
                     Err(e) => return Err(e)
                 }
                 let mut curr_lexeme = self.get_curr_token();
-                if curr_lexeme.text == ";" {
-                    return Ok(())
-                }
-                else if curr_lexeme.text == ")" {
-                    match self.peek_next_token(){
-                        None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                        Some(x) =>{
-                            curr_lexeme = x;
-                            if curr_lexeme.text == ";" {
-                                Ok(())
-                            }
-                            else {
-                                Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                            }
+                println!("r1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                match self.get_next_token(){
+                    None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                    Some(x) => {
+                        curr_lexeme = x;
+                        if curr_lexeme.text == ";" {
+                            return Ok(())
+                        }
+                        else{
+                            return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                         }
                     }
                 }
-                else {
-                    Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                }//Same problem as Assignment: get_next_token too much and it will miss tokens. 
+                // if curr_lexeme.text == ";" {
+                //     return Ok(())
+                // }
+                // else if curr_lexeme.text == ")" {
+                //     match self.peek_next_token(){
+                //         None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                //         Some(x) =>{
+                //             curr_lexeme = x;
+                //             if curr_lexeme.text == ";" {
+                //                 Ok(())
+                //             }
+                //             else {
+                //                 Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                //             }
+                //         }
+                //     }
+                // }
+                // else {
+                //     Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                // }//Same problem as Assignment: get_next_token too much and it will miss tokens. 
 
                 // match self.get_next_token() {
                 //     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
@@ -1209,350 +1203,195 @@ impl Parser {
 
     fn fun_Expression(&mut self) -> Result<(), MyError> {
         let syntax = String::from("Expression := SimpleExpression [ RelationOperator SimpleExpression ]");
-        match self.fun_SimpleExpression() {
-            Ok(()) => (),
-            //Err(e) => println!("{}", e)
+        match self.fun_SimpleExpression(){
+            Ok(())=>(),
             Err(e) => return Err(e)
         }
         let mut curr_lexeme = self.get_curr_token();
         println!("e1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-        if curr_lexeme.text==";" ||curr_lexeme.text==")"||curr_lexeme.text == "}"||curr_lexeme.text == ","{
-            return Ok(());
+        if curr_lexeme.text == ")" || matches!(curr_lexeme.token_type,TokenType::IntConstant|TokenType::FloatConstant){
+            return Ok(())
         }
-        //possible tokens after Expression
-        else{
-            match self.fun_RelationOperator(){
-                Ok(()) => (),
-                Err(e) => return Err(e)
-            }
-            match self.get_next_token(){
-                None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                Some(x)=>{
-                    match self.fun_SimpleExpression(){
-                        Ok(())=>(),
-                        Err(e) => return Err(e)
-                    }
+        if matches!(curr_lexeme.token_type,TokenType::Identifier){
+            if self.curr_token_index < self.all_tokens.len(){
+                let functional_token = self.peek_next_token().unwrap();
+                if functional_token.text == ";"{
+                    println!("e2222{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
                     return Ok(())
                 }
             }
         }
-        // match self.get_next_token() {
-        //     None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),// we also need ';' token in Expression 
-        //     //None => Ok(()),
-        //     Some(x) => {
-        //         match self.fun_RelationOperator() {
-        //             Ok(()) => (),
-        //             //Err(e) => println!("{}", e)
-        //             Err(e) => return Err(e)
-        //         }
-        //         let curr_lexeme = self.get_curr_token();
-
-        //         match self.get_next_token() {
-        //             None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-        //             Some(x) => {
-        //                 match self.fun_SimpleExpression() {
-        //                     Ok(()) => (),
-        //                     //Err(e) => println!("{}", e)
-        //                     Err(e) => return Err(e)
-        //                 }
-        //                 Ok(())
-        //             }
-        //         }
-        //     }
-        // }
+        match self.peek_next_token(){
+            None => return Ok(()),
+            Some(x) => {
+                curr_lexeme = x;
+                if curr_lexeme.text == "==" || curr_lexeme.text == "<" || curr_lexeme.text == ">"|| curr_lexeme.text == "<="|| curr_lexeme.text == ">="|| curr_lexeme.text == "!=" {
+                    curr_lexeme = self.get_next_token().unwrap();
+                    match self.fun_RelationOperator(){
+                        Ok(()) => (),
+                        Err(e) => return Err(e)
+                    }
+                    match self.get_next_token(){
+                        None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                        Some(x) => {
+                            curr_lexeme = x;
+                            match self.fun_SimpleExpression(){
+                                Ok(()) => (),
+                                Err(e) => return Err(e)
+                            }
+                            return Ok(());
+                        }
+                    }
+                }
+                // else{
+                //     Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                // }
+                return Ok(());
+            }
+        }
     }
-
+    
     fn fun_SimpleExpression(&mut self) -> Result<(), MyError> {
         let syntax = String::from("SimpleExpression := Term { AddOperator Term }");
-        match self.fun_Term() {
-            Ok(()) => (),
-            //Err(e) => println!("{}", e)
+        match self.fun_Term(){
+            Ok(())=>(),
+            Err(e) => return Err(e)
+        }
+        let mut curr_lexeme = self.get_curr_token();        
+        println!("s1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+        match self.peek_next_token(){
+            None => return Ok(()),
+            Some(x) => {
+                curr_lexeme = x;
+                println!("s2222{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                if curr_lexeme.text == "+" || curr_lexeme.text == "-" {
+                    curr_lexeme = self.get_next_token().unwrap();
+                }
+                while curr_lexeme.text == "+" || curr_lexeme.text == "-" {
+                    println!("s333{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                    match self.get_next_token(){
+                        None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                        Some(x) => {
+                            match self.fun_Term(){
+                                Ok(()) => (),
+                                Err(e) => return Err(e)
+                            }
+                            curr_lexeme = self.get_next_token().unwrap();
+                            println!("s4444{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                        }
+                    }
+                }
+                return Ok(());
+            }
+        }
+    }
+    
+    fn fun_Term(&mut self) -> Result<(), MyError> {
+        let syntax = String::from("Term := Factor { MultOperator Factor }");
+        match self.fun_Factor(){
+            Ok(())=>(),
             Err(e) => return Err(e)
         }
         let mut curr_lexeme = self.get_curr_token();
-        //have already get_next_token in fun_Factor() so we should use the current token now 
-        if self.curr_token_index ==self.all_tokens.len(){
-            return Ok(());
+        println!("t1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+
+        match self.peek_next_token(){
+            None => return Ok(()),
+            Some(x) => {
+                curr_lexeme = x;
+                while curr_lexeme.text == "*" || curr_lexeme.text == "/" {
+                    curr_lexeme = self.get_next_token().unwrap();
+                    match self.get_next_token(){
+                        None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                        Some(x) => {
+                            match self.fun_Factor(){
+                                Ok(()) => (),
+                                Err(e) => return Err(e)
+                            }
+                            return Ok(());
+                        }
+                    }
+                }
+                Ok(())
+            }
         }
-        else {
-            println!("s1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+    }
+    
+    fn fun_Factor(&mut self) -> Result<(), MyError> {
+        let syntax = String::from("Factor := ( (Expression) )|Constant|(Identifier[ ( [Expression{,Expression}] ) ])");
+        let mut curr_lexeme = self.get_curr_token();
+        if curr_lexeme.text == "(" {
+            match self.get_next_token(){
+                None => Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
+                Some(x) => {
+                    match self.fun_Expression(){
+                        Ok(()) => (),
+                        Err(e) => return Err(e)
+                    }
+                    curr_lexeme = self.get_curr_token();
+                    if curr_lexeme.text == ")" {
+                        return Ok(());
+                    }
+                    else {
+                        return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                    }
+                }
+            }
+        }
+        else if matches!(curr_lexeme.token_type, TokenType::FloatConstant) || matches!(curr_lexeme.token_type, TokenType::IntConstant) {
+            return Ok(())
+        }
+        else if matches!(curr_lexeme.token_type, TokenType::Identifier) {
+            println!("fi1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
             match self.peek_next_token(){
                 None => return Ok(()),
                 Some(x) => {
                     curr_lexeme = x;
-                    if curr_lexeme.text == "+" || curr_lexeme.text == "-" {
+                    if curr_lexeme.text == "(" {
                         curr_lexeme = self.get_next_token().unwrap();
-                    }  
-                    while curr_lexeme.text == "+" || curr_lexeme.text == "-" {
-                        match self.get_next_token() {
+                        match self.get_next_token(){
                             None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
                             Some(x) => {
-                                curr_lexeme = x;
-                                match self.fun_Term() {
+                                println!("fi222{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                                match self.fun_Expression(){
                                     Ok(()) => (),
-                                    //Err(e) => println!("{}", e)
                                     Err(e) => return Err(e)
                                 }
-                                match self.peek_next_token() {
+                                let functional_token = self.get_curr_token();
+                                println!("fi333{:?},{:?},{:?}",functional_token.text,functional_token.line_num,functional_token.char_pos);
+                                match self.peek_next_token(){
                                     None => return Ok(()),
                                     Some(x) => {
                                         curr_lexeme = x;
-                                        if curr_lexeme.text == "+" || curr_lexeme.text == "-" {
-                                            curr_lexeme = self.get_next_token().unwrap();
-                                            }  
-                                        } 
-                                    }//if there is only one * identifier, use the original function will get next next token
-                                }
-                            }
-                    }
-                    return Ok(());
-                }
-            }
-        }
-            // while curr_lexeme.text == "+" || curr_lexeme.text == "-" {
-
-            //     match self.get_next_token() {
-            //         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-            //         Some(x) => {
-            //             curr_lexeme = x;
-            //             match self.fun_Term() {
-            //                 Ok(()) => (),
-            //                 //Err(e) => println!("{}", e)
-            //                 Err(e) => return Err(e)
-            //             }
-            //             // match self.get_next_token() {
-            //             //     None => return Ok(()),
-            //             //     Some(x) => curr_lexeme = x
-            //             // }
-            //             match self.peek_next_token() {
-            //                 None => return Ok(()),
-            //                 Some(x) => {
-            //                     curr_lexeme = x;
-            //                     if curr_lexeme.text == "+" || curr_lexeme.text == "-" {
-            //                         curr_lexeme = self.get_next_token().unwrap();
-            //                         }  
-            //                     } 
-            //                 }//if there is only one * identifier, use the original function will get next next token
-            //         }
-            //     }
-            // }
-    }
-        // match self.get_next_token() {
-        //     None => Ok(()),
-        //     Some(x) => {
-        //         let mut curr_lexeme = x;
-        //         while curr_lexeme.text == "+" || curr_lexeme.text == "-" {
-
-        //             match self.get_next_token() {
-        //                 None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-        //                 Some(x) => {
-        //                     curr_lexeme = x;
-        //                     match self.fun_Term() {
-        //                         Ok(()) => (),
-        //                         //Err(e) => println!("{}", e)
-        //                         Err(e) => return Err(e)
-        //                     }
-
-        //                     match self.get_next_token() {
-        //                         None => return Ok(()),
-        //                         Some(x) => curr_lexeme = x
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         Ok(())
-        //     }
-        // }
-    //}
-
-    fn fun_Term(&mut self) -> Result<(), MyError> {
-        let syntax = String::from("Term := Factor { MultapgrAtgr Factor }");
-        match self.fun_Factor() {
-            Ok(()) => (),
-            //Err(e) => println!("{}", e)
-            Err(e) => return Err(e)
-        }
-        let mut curr_lexeme = self.get_curr_token();
-        if self.curr_token_index == self.all_tokens.len(){
-            return Ok(());
-        }
-        else {
-            while curr_lexeme.text == "*" || curr_lexeme.text == "/" {
-
-                match self.get_next_token() {
-                    None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                    Some(x) => {
-                        match self.fun_Factor() {
-                            Ok(()) => (),
-                            //Err(e) => println!("{}", e)
-                            Err(e) => return Err(e)
-                            }
-
-                        // match self.get_next_token() {
-                        //     None => return Ok(()),
-                        //     Some(x) => curr_lexeme = x
-                        //     }
-                        match self.peek_next_token() {
-                            None => return Ok(()),
-                            Some(x) => {
-                                curr_lexeme = x;
-                                if curr_lexeme.text == "*" || curr_lexeme.text == "/" {
-                                    curr_lexeme = self.get_next_token().unwrap();
-                                    }  
-                                } 
-                            }//if there is only one * identifier, use the original function will get next next token
-                        }
-                    }
-                }
-            Ok(())
-        }
-        // match self.get_next_token() {
-        //     None => Ok(()),
-        //     Some(x) => {
-        //         curr_lexeme = x;
-        //         while curr_lexeme.text == "*" || curr_lexeme.text == "/" {
-
-        //             match self.get_next_token() {
-        //                 None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-        //                 Some(x) => {
-        //                     match self.fun_Factor() {
-        //                         Ok(()) => (),
-        //                         //Err(e) => println!("{}", e)
-        //                         Err(e) => return Err(e)
-        //                     }
-
-        //                     match self.get_next_token() {
-        //                         None => return Ok(()),
-        //                         Some(x) => curr_lexeme = x
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         Ok(())
-        //     }
-        // }
-    }
-
-    fn fun_Factor(&mut self) -> Result<(), MyError> {
-        let syntax = String::from("Factor := ( (Expression) )|Constant|(Identifier[ ( [Expression{,Expression}] ) ])");
-        let mut curr_lexeme = self.get_curr_token();
-        println!("f1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-        if curr_lexeme.text == "(" {
-
-            match self.get_next_token() {
-                None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                Some(x) => {
-                    println!("fep1111{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                    match self.fun_Expression() {
-                        Ok(()) => (),
-                        //Err(e) => println!("{}", e)
-                        Err(e) => return Err(e)
-                    }
-                    println!("fep222{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                    curr_lexeme = self.get_curr_token();
-                    match self.get_next_token() {
-                        None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                        Some(x) => {
-                            curr_lexeme = x;
-                            if curr_lexeme.text == ")" {
-                                Ok(())
-                            } else {
-                                Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                            }
-                        }
-                    }
-                }
-            }
-        } else if matches!(curr_lexeme.token_type, TokenType::FloatConstant) ||
-        matches!(curr_lexeme.token_type, TokenType::IntConstant) {
-            self.get_next_token();
-            return Ok(());
-        } else if matches!(curr_lexeme.token_type, TokenType::Identifier) {
-            match self.get_next_token() {
-                None => return Ok(()),
-                Some(x) => {
-                    curr_lexeme = x;
-                    if curr_lexeme.text == "(" {
-                        println!("f222{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                        match self.get_next_token() {
-                            None => return Ok(()),
-                            Some(x) => {
-                                println!("fep333{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                                match self.fun_Expression() {
-                                    Ok(()) => (),
-                                    //Err(e) => println!("{}", e)
-                                    Err(e) => return Err(e)
-                                }
-                                curr_lexeme = self.get_curr_token();
-                                println!("fep444{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                                while curr_lexeme.text == ","{
-                                    match self.get_next_token(){
-                                        None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                        Some(x) => {
-                                            println!("fep555{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                                            match self.fun_Expression() {
-                                                Ok(()) => (),
-                                                //Err(e) => println!("{}", e)
-                                                Err(e) => return Err(e)
-                                            }
-                                            println!("fep666{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
-                                            match self.peek_next_token(){
-                                                None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                                Some(x) => {
-                                                    curr_lexeme = self.get_curr_token()
+                                        if curr_lexeme.text == "," {
+                                            curr_lexeme = self.get_next_token().unwrap();//equal to ","
+                                            while curr_lexeme.text == ","{
+                                                curr_lexeme = self.get_next_token().unwrap();
+                                                match self.fun_Expression(){
+                                                    Ok(()) => (),
+                                                    Err(e) => return Err(e)
                                                 }
+                                                curr_lexeme = self.get_next_token().unwrap();
                                             }
+                                        }
+                                        else{
+                                            curr_lexeme = self.get_next_token().unwrap();
+                                        }
+                                        println!("fi444{:?},{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num,curr_lexeme.char_pos);
+                                        if curr_lexeme.text != ")" {
+                                            return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
+                                        }
                                     }
-                                    
                                 }
-                                // match self.get_next_token() {
-                                //     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                //     Some(x) => {
-                                //         curr_lexeme = x;
-
-                                //         while curr_lexeme.text == "," {
-
-                                //             match self.get_next_token() {
-                                //                 None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                //                 Some(x) => {
-                                //                     match self.fun_Expression() {
-                                //                         Ok(()) => (),
-                                //                         //Err(e) => println!("{}", e)
-                                //                         Err(e) => return Err(e)
-                                //                     }
-                                //                     curr_lexeme = self.get_curr_token();
-
-                                //                     match self.get_next_token() {
-                                //                         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                                //                         Some(x) => curr_lexeme = x
-                                //                     }
-                                //                 }
-                                //             }
-                                //         }
-                                //         if curr_lexeme.text == ")" {
-                                //             Ok(())
-                                //         } else {
-                                //             Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                                //         }
-                                //     }
-                                // }
-                                }
-                                if curr_lexeme.text == ")" {
-                                    return Ok(());
-                                } else {
-                                    return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax});
-                                }
+                                return Ok(());
                             }
                         }
-                    } 
-                    // else {
-                    //     Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                    // }
+                    }
                     Ok(())
                 }
             }
-            
-        } else {
+        }
+        else {
             Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
         }
     }
