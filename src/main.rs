@@ -1,5 +1,7 @@
 use custom_error::custom_error;
 use std::env;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Clone)]
 struct Cstream {
@@ -628,18 +630,7 @@ impl Parser {
                     }
                 }
 
-                // while first_set_Declaration.contains(&curr_lexeme.text) && nextnext_token.text != "{" {
-                //     match self.fun_Declaration() {
-                //         Ok(()) => (),
-                //         //Err(e) => println!("{}", e)
-                //         Err(e) => return Err(e)
-                //     }
-                //     curr_lexeme = self.get_curr_token();
-                //     match self.get_next_token() {
-                //         None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                //         Some(x) => curr_lexeme = x
-                //     }
-                // } {Statement}'s {} should not show up, and Declaration tokens length is over 2. IN this case should always get one token and check whether it is Declaration or Statement
+                // {Statement}
                 while first_set_Declaration.contains(&curr_lexeme.text){
                     match self.fun_Declaration(){
                         Ok(()) => (),
@@ -749,18 +740,6 @@ impl Parser {
                             else {
                                 return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
                             }
-
-                            // match self.get_next_token() {
-                            //     None => return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax}),
-                            //     Some(x) => {
-                            //         curr_lexeme = x;
-                            //         if curr_lexeme.text == ")" {
-                            //             return Ok(())
-                            //         } else {
-                            //             return Err(MyError::SyntaxError{line_num: curr_lexeme.line_num, char_pos: curr_lexeme.char_pos, syntax})
-                            //         }
-                            //     }
-                            // } 
                         }
                     }
                 } else {
@@ -1436,6 +1415,79 @@ impl Parser {
 
 }
 
+fn xhtmlparser(content:&String,vector:Vec<Token>) -> String {
+    let mut start_pos = 0;
+    let content = content;
+    let all_tokens = vector;
+    let mut token_index = 0;
+    let mut string_vec = Vec::new();
+    let mut html_string : String = r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+    <head>
+    <title>
+    X Formatted file</title>
+    </head>
+    <body bgcolor="navy" text="orange" link="orange" vlink="orange">
+    <font face="Courier New">
+    "#.to_owned();
+    //let mut curr_token = all_tokens[token_index].clone();
+    while token_index < all_tokens.len(){
+        let mut token_s;
+        if matches!(all_tokens[token_index].token_type,TokenType::Identifier){
+            token_s = format!(r#"<font color="yellow">{}</font>"#, &all_tokens[token_index].text);
+        }
+        else if matches!(all_tokens[token_index].token_type,TokenType::IntConstant|TokenType::FloatConstant){
+            token_s = format!(r#"<font color="aqua"><b>{}</b></font>"#, &all_tokens[token_index].text);
+        }
+        else{
+            if all_tokens[token_index].text == "<" {
+                token_s = r#"<font color="white"><b>&lt;</b></font>"#.to_string();
+            }
+            else if all_tokens[token_index].text == "<=" {
+                token_s = r#"<font color="white"><b>&lt=;</b></font>"#.to_string();
+            }
+            else{
+                token_s = format!(r#"<font color="white"><b>{}</b></font>"#, &all_tokens[token_index].text);
+            }
+        }
+        string_vec.push(token_s);
+        start_pos = all_tokens[token_index].pos_in_file +all_tokens[token_index].token_length;
+        if start_pos < content.len() as i32 && content.chars().nth(start_pos.try_into().unwrap()).unwrap()== ' ' {
+            token_s = "\n".to_string();
+            string_vec.push(token_s);
+            while content.chars().nth(start_pos.try_into().unwrap()).unwrap()== ' '{
+                start_pos = start_pos+1;
+            }
+        }
+        if start_pos < content.len() as i32 && content.chars().nth(start_pos.try_into().unwrap()).unwrap()== '\n' {
+            if token_index+1<all_tokens.len(){
+                token_s = "<br />\n".to_string();
+                string_vec.push(token_s);
+                let indent_space = all_tokens[token_index+1].char_pos;
+                let mut indent = indent_space/4;
+                if indent > 0 {
+                    let mut indent_string = "&nbsp;&nbsp; &nbsp;".to_string();
+                    let indent_new = " &nbsp; &nbsp;".to_string();
+                    while indent > 1{
+                        indent_string.push_str(&indent_new);
+                        indent = indent-2;
+                    }
+                    string_vec.push(indent_string);
+                }
+            }
+        }
+        token_index = token_index+1;
+    }
+    let html_end : &str = "</font>
+    </body>
+    </html>";
+    for ele in &string_vec{
+        html_string = html_string+&ele;
+    }
+    html_string = html_string+html_end;
+    return html_string;
+}
+
 fn main() {
     // Run program with "cargo run examples/example1.x"
     // let args: Vec<String> = env::args().collect(); 
@@ -1451,6 +1503,11 @@ fn main() {
         Ok(()) => (),
         Err(e) => println!("{}", e),
       }
+    let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
+    let all_tokens_1: Vec<Token> = Scanner(&mut my_cstream_1);
+    let html_string = xhtmlparser(my_cstream.get_content(),all_tokens_1);
+    let mut f = File::create("result.xhtml").expect("Unable to create file");
+    f.write_all(html_string.as_bytes()).expect("Unable to write data");
 }
 // fn main() {
 //     let mut f = Cstream::new(&"./examples/example7.x".to_string());
