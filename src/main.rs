@@ -85,6 +85,7 @@ impl Token {
         return self.token_type.as_str().to_string()
     }// return the token type value as string 
 }
+
 fn check_token_type_char(text:char)->TokenType{
     if text =='('||text ==')'||text =='{'||text =='}'||text ==','||text =='}'||text =='='||text =='<'||text =='>'||text =='+'||text =='-'||text =='*'||text =='/'||text ==';'{
         return TokenType::Operator;
@@ -93,6 +94,9 @@ fn check_token_type_char(text:char)->TokenType{
         return TokenType::IntConstant;
     }
     else if text.is_alphabetic(){
+        return TokenType::Identifier;
+    }
+    else if text=='_'{
         return TokenType::Identifier;
     }
     else{
@@ -133,13 +137,11 @@ fn check_token_type_string(text:String)->TokenType{
             return TokenType::Keyword;
         }
         let mut letters = true;
-        for c in text.chars(){
-            if !c.is_alphabetic(){
-                if !c.is_numeric(){
-                    letters = false;
-                }
+        for c in text[1..text.len()].chars(){
+            if !c.is_alphabetic()&&!c.is_numeric()&&c!='_'{
+                letters = false;
             }
-        } //seems like input1 is also acceptable?
+        }
         if letters==true{
             return TokenType::Identifier;
         }
@@ -149,6 +151,33 @@ fn check_token_type_string(text:String)->TokenType{
     }
     else if  text=="=="||text=="<="||text==">="||text=="!=" {
         return TokenType::Operator;
+    }
+    else if text.chars().nth(0).unwrap()=='-'{
+        if text.len()==2{
+            if text.chars().nth(1).unwrap().is_numeric(){
+                return TokenType::IntConstant;
+            }
+            else{
+                return TokenType::Invalid;
+            }
+        }
+        else{
+            return check_token_type_string((&text[1..text.len()]).to_string());
+        }
+    }
+    else if text.chars().nth(0).unwrap()=='_'{
+        let mut letters = true;
+        for c in text[1..text.len()].chars(){
+            if !c.is_alphabetic()&&!c.is_numeric()&&c!='_'{
+                letters = false;
+            }
+        }
+        if letters == true {
+            return TokenType::Identifier;
+        }
+        else{
+            return TokenType::Invalid;
+        }
     }
     else{
         return TokenType::Invalid;
@@ -1493,7 +1522,7 @@ fn main() {
     // let args: Vec<String> = env::args().collect(); 
     // let filename = args[1].clone();
     // let mut my_cstream = Cstream::new(&filename);
-    let mut my_cstream = Cstream::new(&"./examples/example2.x".to_string());
+    let mut my_cstream = Cstream::new(&"./examples/example1.x".to_string());
     println!("{:?}", my_cstream.get_content());
     
     let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
@@ -1501,7 +1530,7 @@ fn main() {
     let mut my_parser = Parser::new(all_tokens);
     match my_parser.fun_Program() {
         Ok(()) => {
-            let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
+            let mut my_cstream_1 = Cstream::new(&"./examples/example1.x".to_string());
             let all_tokens_1: Vec<Token> = Scanner(&mut my_cstream_1);
             let html_string = xhtmlparser(my_cstream.get_content(),all_tokens_1);
             let mut f = File::create("result.xhtml").expect("Unable to create file");
@@ -1510,13 +1539,6 @@ fn main() {
         Err(e) => println!("{}", e),
       }
 }
-// fn main() {
-//     let mut f = Cstream::new(&"./examples/example7.x".to_string());
-//     let mut content = f.get_content();
-//     let vector = Scanner(&mut f);
-//     //println!("{:?}", f.get_content());
-//     //println!("{:?}", vector.first().unwrap().return_token_type());
-// }
 
 // debuging sentence :         
 // println!("e1111{:?},{:?}",curr_lexeme.text,curr_lexeme.line_num);
