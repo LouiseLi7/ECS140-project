@@ -1500,14 +1500,15 @@ fn main() {
     println!("{:?}", &all_tokens);
     let mut my_parser = Parser::new(all_tokens);
     match my_parser.fun_Program() {
-        Ok(()) => (),
+        Ok(()) => {
+            let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
+            let all_tokens_1: Vec<Token> = Scanner(&mut my_cstream_1);
+            let html_string = xhtmlparser(my_cstream.get_content(),all_tokens_1);
+            let mut f = File::create("result.xhtml").expect("Unable to create file");
+            f.write_all(html_string.as_bytes()).expect("Unable to write data");
+        },
         Err(e) => println!("{}", e),
       }
-    let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
-    let all_tokens_1: Vec<Token> = Scanner(&mut my_cstream_1);
-    let html_string = xhtmlparser(my_cstream.get_content(),all_tokens_1);
-    let mut f = File::create("result.xhtml").expect("Unable to create file");
-    f.write_all(html_string.as_bytes()).expect("Unable to write data");
 }
 // fn main() {
 //     let mut f = Cstream::new(&"./examples/example7.x".to_string());
