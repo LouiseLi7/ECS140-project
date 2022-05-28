@@ -185,7 +185,7 @@ fn check_token_type_string(text:String)->TokenType{
 
 }
 
-fn Scanner(file: &mut Cstream)-> Vec<Token>{
+fn Scanner_helper(file: &mut Cstream)-> Vec<Token>{
     let mut length = 0;
     let file_clone = file.clone();
     let f = file_clone.contents;
@@ -285,6 +285,24 @@ fn get_next_token(file: &mut Cstream,current_t:Token)->Token{
         return new_token;
     }
 }
+
+#[derive(Clone, Debug)]
+struct Scanner{
+    all_tokens: Vec<Token>
+}
+
+impl Scanner{
+    fn new() -> Self {
+        Self {
+            all_tokens: Vec::new()
+        }
+    }
+    fn get_all_tokens(&mut self,file: &mut Cstream)->Vec<Token>{
+        self.all_tokens = Scanner_helper(file);
+        return self.all_tokens.clone();
+    }
+}
+
 
 macro_rules! vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
@@ -1518,21 +1536,19 @@ fn xhtmlparser(content:&String,vector:Vec<Token>) -> String {
 }
 
 fn main() {
-    // Run program with "cargo run examples/example1.x"
-    // let args: Vec<String> = env::args().collect(); 
-    // let filename = args[1].clone();
-    // let mut my_cstream = Cstream::new(&filename);
-    let mut my_cstream = Cstream::new(&"./examples/example1.x".to_string());
+    let mut my_cstream = Cstream::new(&"./examples/example2.x".to_string());
     println!("{:?}", my_cstream.get_content());
-    
-    let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
-    println!("{:?}", &all_tokens);
+    let mut struct_scanner = Scanner::new();
+    let all_tokens = struct_scanner.get_all_tokens(&mut my_cstream);
+    //let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
+    println!("{:?}", &struct_scanner.all_tokens);
     let mut my_parser = Parser::new(all_tokens);
     match my_parser.fun_Program() {
         Ok(()) => {
-            let mut my_cstream_1 = Cstream::new(&"./examples/example1.x".to_string());
-            let all_tokens_1: Vec<Token> = Scanner(&mut my_cstream_1);
-            let html_string = xhtmlparser(my_cstream.get_content(),all_tokens_1);
+            let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
+            let mut struct_scanner_1 = Scanner::new();
+            let all_tokens_1 = struct_scanner_1.get_all_tokens(&mut my_cstream_1);
+            let html_string = xhtmlparser(my_cstream.get_content(),struct_scanner_1.all_tokens);
             let mut f = File::create("result.xhtml").expect("Unable to create file");
             f.write_all(html_string.as_bytes()).expect("Unable to write data");
         },
