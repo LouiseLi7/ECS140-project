@@ -8,6 +8,6 @@ Stage : Stage 2, Stage 3, Stage 4
 ### 2.
 
 
-Instructions:
+## Instructions:
 Just call the main function and edit the path(name) of the .x file
 
