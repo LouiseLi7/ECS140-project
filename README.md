@@ -6,6 +6,8 @@ Louise Li yxyli@ucdavis.edu 917012327
 Stage : Stage 2, Stage 3, Stage 4
 
 ### 2.
+Claude Zheng Guo goguo@ucdavis.edu  915943922
+Stage : Stage 1, Stage 3
 
 
 ## Instructions:
