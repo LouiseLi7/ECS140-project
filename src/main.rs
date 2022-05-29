@@ -302,7 +302,7 @@ impl Scanner{
     }
 }
 
-
+//https://stackoverflow.com/questions/38183551/concisely-initializing-a-vector-of-strings
 macro_rules! vec_of_strings {
     ($($x:expr),*) => (vec![$($x.to_string()),*]);
 }
@@ -1514,16 +1514,22 @@ fn xhtmlparser(content:&String,vector:Vec<Token>) -> String {
 }
 
 fn main() {
-    let mut my_cstream = Cstream::new(&"./examples/example2.x".to_string());
-    //println!("{:?}", my_cstream.get_content());
+    let args: Vec<String> = env::args().collect(); 
+    let filename = args[1].clone();
+    // let mut my_cstream = Cstream::new(&"./examples/example2.x".to_string());
+    let mut my_cstream = Cstream::new(&filename.to_string());
+    println!("{:?}", my_cstream.get_content());
     let mut struct_scanner = Scanner::new();
-    let all_tokens = struct_scanner.get_all_tokens(&mut my_cstream);
+
+    let all_tokens = struct_scanner.get_all_tokens(&mut my_cstream); //The required vector all_tokens by project description
+
     //let all_tokens: Vec<Token> = Scanner(&mut my_cstream);
     //println!("{:?}", &struct_scanner.all_tokens);
     let mut my_parser = Parser::new(all_tokens);
     match my_parser.fun_Program() {
         Ok(()) => {
-            let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
+            let mut my_cstream_1 = Cstream::new(&filename.to_string());
+            // let mut my_cstream_1 = Cstream::new(&"./examples/example2.x".to_string());
             let mut struct_scanner_1 = Scanner::new();
             let all_tokens_1 = struct_scanner_1.get_all_tokens(&mut my_cstream_1);
             let html_string = xhtmlparser(my_cstream.get_content(),struct_scanner_1.all_tokens);

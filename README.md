@@ -10,9 +10,10 @@ Claude Zheng Guo goguo@ucdavis.edu  915943922
 
 Stage : Stage 1, Stage 3
 
+## All stages are completed
 
 ## Instructions:
-Just call the main function and edit the path(name) of the .x file
+Run program with "cargo run examples/example1.x"
 
-## References
+## References:
 https://stackoverflow.com/questions/38183551/concisely-initializing-a-vector-of-strings
