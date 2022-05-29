@@ -14,3 +14,5 @@ Stage : Stage 1, Stage 3
 ## Instructions:
 Just call the main function and edit the path(name) of the .x file
 
+## References
+https://stackoverflow.com/questions/38183551/concisely-initializing-a-vector-of-strings
