@@ -1,10 +1,11 @@
 # ECS140-project
-Group member：
-1. 
+## Group member：
+### 1. 
 Louise Li yxyli@ucdavis.edu 917012327
+
 Stage : Stage 2, Stage 3, Stage 4
 
-2.
+### 2.
 
 
 Instructions:
